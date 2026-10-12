@@ -1,363 +1,800 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stickqq</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <style>
-        :root {
-            --bg: #0d0d0d;
-            --surface: #0d0d0d;
-            --surface2: #1a1a1a;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STICKQQ // SUPERHOT</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+    :root {
+        --bg: #0a0a0a;
+        --ink: #e8e8e8;
+        --red: #ff2b2b;
+        --glass: rgba(255, 255, 255, 0.04);
+        --glass-border: rgba(255, 255, 255, 0.14);
+        --dim: #8a8a8a;
+        --mono: "Courier New", Courier, monospace;
+    }
 
-            --text: #c5c5c5;
-            --subtext: #5C743B;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-            --accent: #FF00FF;
-            --muted: #5C743B;
-            --radius: 8px;
-        }
+    html { scroll-behavior: smooth; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--mono);
+        overflow-x: hidden;
+        cursor: none;
+    }
 
-        ::selection {
-            background: rgba(143, 188, 143, 0.25);
-            color: var(--text);
-        }
+    ::selection { background: var(--red); color: #fff; }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: "Courier New", Courier, monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            padding: 28px;
-            -webkit-font-smoothing: antialiased;
-        }
+    /* ---------- custom crosshair cursor ---------- */
+    .cursor {
+        position: fixed;
+        top: 0; left: 0;
+        width: 26px; height: 26px;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        mix-blend-mode: difference;
+    }
+    .cursor::before, .cursor::after {
+        content: "";
+        position: absolute;
+        background: #fff;
+    }
+    .cursor::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
+    .cursor::after { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
+    .cursor .dot {
+        position: absolute; left: 50%; top: 50%;
+        width: 6px; height: 6px;
+        background: #fff;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .cursor.hit { transform: translate(-50%,-50%) scale(1.6) rotate(45deg); }
+    @media (hover: none) { .cursor { display: none; } body { cursor: auto; } }
 
-        main {
-            width: 100%;
-            max-width: 900px;
-            margin: auto;
-        }
+    /* ---------- HOT HOT HOT animated background ---------- */
+    .hot-bg {
+        position: fixed;
+        inset: -200px;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+        transform: rotate(-12deg);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .hot-line {
+        white-space: nowrap;
+        font-size: 13px;
+        letter-spacing: 8px;
+        color: rgba(255, 43, 43, 0.10);
+        text-transform: uppercase;
+        line-height: 2.2;
+        animation: hotScroll 40s linear infinite;
+    }
+    .hot-line:nth-child(even) {
+        color: rgba(255, 255, 255, 0.05);
+        animation-direction: reverse;
+        animation-duration: 55s;
+    }
+    .hot-line:nth-child(3n) { animation-duration: 70s; }
+    @keyframes hotScroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
 
-        /* hero */
-        .hero {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-            margin-bottom: 45px;
-        }
+    .grid-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 80%);
+    }
+    .scanline {
+        position: fixed;
+        left: 0; right: 0;
+        height: 120px;
+        background: linear-gradient(to bottom, transparent, rgba(255,43,43,0.07), transparent);
+        z-index: 1;
+        pointer-events: none;
+        animation: scan 7s linear infinite;
+    }
+    @keyframes scan {
+        0% { top: -15%; }
+        100% { top: 110%; }
+    }
 
-        .avatar {
-            width: 180px;
-            height: 180px;
-            object-fit: cover;
-            border-radius: var(--radius);
-            border: 2px solid var(--accent);
-            flex-shrink: 0;
-        }
+    main { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 0 32px 60px; }
 
-        .hero-text h1 {
-            font-family: "Courier New", Courier, monospace;
-            font-size: clamp(2.5rem, 7vw, 4rem);
-            line-height: 0.95;
-            color: var(--accent);
-            font-weight: normal;
-            letter-spacing: -1px;
-        }
+    /* ---------- top HUD bar ---------- */
+    .hud {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 0;
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--ink);
+    }
+    .hud .blink { animation: blink 1.2s steps(1) infinite; color: var(--red); }
+    @keyframes blink { 50% { opacity: 0; } }
 
-        .hero-text h1::before {
-            content: "# ";
-        }
+    /* ---------- HERO ---------- */
+    .hero {
+        min-height: 82vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+    }
 
-        .hero-text p {
-            margin-top: 14px;
-            font-size: 1rem;
-            line-height: 1.6;
-            color: var(--subtext);
-            max-width: 500px;
-        }
+    .hero-top {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        flex-wrap: wrap;
+    }
 
-        /* layout */
-        .layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 45px;
-        }
+    .avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .avatar {
+        width: 200px; height: 200px;
+        object-fit: cover;
+        display: block;
+        border: 3px solid var(--ink);
+        filter: grayscale(1) contrast(1.15);
+        transition: filter .3s;
+        background: #1a1a1a;
+    }
+    .avatar-wrap::before {
+        content: "TARGET://STICKQQ";
+        position: absolute;
+        bottom: -22px; left: 0;
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: var(--red);
+    }
+    .avatar-wrap::after {
+        content: "";
+        position: absolute;
+        inset: -14px;
+        border: 1px dashed var(--red);
+        opacity: .6;
+        animation: spinbox 14s linear infinite;
+    }
+    @keyframes spinbox { to { transform: rotate(360deg); } }
+    .avatar-wrap:hover .avatar { filter: grayscale(0) contrast(1.05); }
 
-        .column {
-            display: flex;
-            flex-direction: column;
-            gap: 26px;
-        }
+    .glitch-title {
+        font-size: clamp(3.5rem, 12vw, 9rem);
+        line-height: .9;
+        font-weight: bold;
+        letter-spacing: -4px;
+        text-transform: uppercase;
+        position: relative;
+        user-select: none;
+        color: var(--ink);
+    }
+    .glitch-title::before, .glitch-title::after {
+        content: attr(data-text);
+        position: absolute;
+        left: 0; top: 0;
+        width: 100%;
+    }
+    .glitch-title::before {
+        color: var(--red);
+        animation: glitch1 2.8s infinite linear alternate-reverse;
+        clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+    }
+    .glitch-title::after {
+        color: var(--ink);
+        animation: glitch2 3.4s infinite linear alternate-reverse;
+        clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+        opacity: .85;
+    }
+    @keyframes glitch1 {
+        0%   { transform: translate(0); }
+        20%  { transform: translate(-4px, 2px); }
+        40%  { transform: translate(3px, -1px); }
+        60%  { transform: translate(-2px, 1px); }
+        80%  { transform: translate(4px, -2px); }
+        100% { transform: translate(0); }
+    }
+    @keyframes glitch2 {
+        0%   { transform: translate(0); }
+        25%  { transform: translate(3px, -2px); }
+        50%  { transform: translate(-3px, 2px); }
+        75%  { transform: translate(2px, 1px); }
+        100% { transform: translate(0); }
+    }
 
-        section {
-            padding-top: 14px;
-            border-top: 1px solid var(--surface2);
-        }
+    .hero-sub {
+        margin-top: 22px;
+        font-size: clamp(1rem, 2.4vw, 1.4rem);
+        color: var(--dim);
+        max-width: 560px;
+        line-height: 1.6;
+    }
+    .hero-sub b { color: var(--red); }
 
-        .section-title {
-            display: inline-block;
-            margin-bottom: 14px;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 1rem;
-            font-weight: normal;
-            color: var(--accent);
-            letter-spacing: 0.5px;
-        }
+    .scroll-hint {
+        position: absolute;
+        bottom: 24px; left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        letter-spacing: 4px;
+        color: var(--dim);
+        animation: bounce 1.6s ease-in-out infinite;
+        opacity: .7;
+    }
+    @keyframes bounce { 50% { transform: translate(-50%, 10px); } }
 
-        .section-title::before {
-            content: "## ";
-            color: var(--muted);
-        }
+    /* ---------- sections ---------- */
+    section { margin-top: 90px; }
 
-        p {
-            font-size: 0.95rem;
-            line-height: 1.7;
-            color: var(--subtext);
-        }
+    .sec-head {
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+        margin-bottom: 34px;
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 10px;
+    }
+    .sec-head .num {
+        font-size: 13px;
+        color: var(--red);
+        letter-spacing: 2px;
+    }
+    .sec-head h2 {
+        font-size: clamp(1.8rem, 5vw, 3rem);
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        font-weight: bold;
+    }
 
-        /* links */
-        a {
-            color: var(--accent);
-            text-decoration: none;
-            position: relative;
-            width: fit-content;
-        }
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 22px;
+    }
 
-        a::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: -3px;
-            width: 0%;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.2s ease;
-        }
+    .card {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        padding: 26px;
+        position: relative;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s;
+        will-change: transform;
+    }
+    .card:hover {
+        border-color: var(--ink);
+        box-shadow: 8px 8px 0 var(--red);
+        transform: translate(-4px, -4px);
+    }
+    .card .corner {
+        position: absolute;
+        top: 8px; right: 12px;
+        font-size: 10px;
+        color: var(--red);
+        letter-spacing: 2px;
+    }
+    .card h3 {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-bottom: 16px;
+        color: var(--red);
+    }
+    .card ul { list-style: none; }
+    .card li {
+        padding: 7px 0 7px 20px;
+        position: relative;
+        font-size: .95rem;
+        line-height: 1.5;
+        color: var(--dim);
+        border-bottom: 1px dashed rgba(255,255,255,.15);
+    }
+    .card li:last-child { border-bottom: none; }
+    .card li::before {
+        content: ">";
+        position: absolute;
+        left: 0;
+        color: var(--red);
+        font-weight: bold;
+    }
+    .card li a { color: var(--ink); font-weight: bold; }
 
-        a:hover::after {
-            width: 100%;
-        }
+    /* tags */
+    .tags { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tag {
+        padding: 8px 18px;
+        border: 2px solid var(--ink);
+        font-size: .85rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        background: transparent;
+        color: var(--ink);
+        transition: all .18s ease;
+        user-select: none;
+    }
+    .tag:hover {
+        background: var(--red);
+        border-color: var(--red);
+        color: #fff;
+        transform: skewX(-8deg);
+    }
 
-        /* lists */
-        .stack-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+    /* link buttons */
+    .links-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+    }
+    .big-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px 24px;
+        border: 2px solid var(--ink);
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 1.05rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        overflow: hidden;
+        transition: color .2s;
+    }
+    .big-link::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--red);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform .25s ease;
+        z-index: 0;
+    }
+    .big-link:hover::before { transform: scaleX(1); }
+    .big-link:hover { color: #fff; }
+    .big-link span { position: relative; z-index: 1; }
+    .big-link .arrow { transition: transform .25s; }
+    .big-link:hover .arrow { transform: translateX(6px); }
 
-        .stack-list span {
-            color: var(--subtext);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
+    /* games */
+    .games-marquee {
+        overflow: hidden;
+        border-top: 2px solid var(--ink);
+        border-bottom: 2px solid var(--ink);
+        padding: 18px 0;
+        white-space: nowrap;
+    }
+    .games-track {
+        display: inline-flex;
+        gap: 60px;
+        animation: marquee 18s linear infinite;
+        font-size: clamp(1.4rem, 4vw, 2.4rem);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        color: var(--ink);
+    }
+    .games-track span { display: inline-flex; align-items: center; gap: 60px; }
+    .games-track .sep { color: var(--red); }
+    @keyframes marquee { to { transform: translateX(-50%); } }
 
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 14px;
-        }
+    .src-forever {
+        margin-top: 26px;
+        text-align: center;
+        font-size: clamp(1.6rem, 5vw, 3rem);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        color: var(--red);
+        animation: foreverPulse 2s ease-in-out infinite;
+        user-select: none;
+    }
+    @keyframes foreverPulse {
+        0%, 100% { opacity: 1; text-shadow: 0 0 18px rgba(255,43,43,.6); }
+        50% { opacity: .55; text-shadow: 0 0 4px rgba(255,43,43,.2); }
+    }
 
-        .tag-list span {
-            display: inline-flex;
-            align-items: center;
-            min-height: 24px;
-            padding: 3px 10px;
-            border: 1px solid rgba(143, 188, 143, 0.35);
-            background: rgba(143, 188, 143, 0.05);
-            border-radius: 999px;
-            color: var(--subtext);
-            font-size: 0.82rem;
-            line-height: 1.2;
-        }
+    /* quote */
+    .quote {
+        margin-top: 90px;
+        text-align: center;
+        font-size: clamp(1.2rem, 3.4vw, 2rem);
+        font-style: italic;
+        color: var(--dim);
+        position: relative;
+        padding: 40px 20px;
+    }
+    .quote::before, .quote::after {
+        content: "»";
+        position: absolute;
+        font-size: 5rem;
+        color: var(--red);
+        opacity: .25;
+        font-style: normal;
+    }
+    .quote::before { top: -10px; left: 8%; }
+    .quote::after { content: "«"; bottom: -30px; right: 8%; }
 
-        .link-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 18px;
-        }
+    /* footer */
+    footer {
+        margin-top: 90px;
+        border-top: 2px solid var(--ink);
+        padding-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        justify-content: space-between;
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--dim);
+    }
+    footer .red { color: var(--red); font-weight: bold; }
 
-        .link-grid a {
-            font-size: 0.95rem;
-            font-weight: bold;
-        }
+    /* reveal on scroll */
+    .reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
 
-        /* quote */
-        .quote-block {
-            color: var(--subtext);
-            font-style: italic;
-            font-size: 0.95rem;
-            margin-top: 8px;
-        }
+    /* ---------- console ---------- */
+    .hud-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .console-btn {
+        background: transparent;
+        border: 2px solid var(--ink);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: bold;
+        padding: 2px 10px;
+        cursor: none;
+        letter-spacing: 1px;
+        transition: all .15s ease;
+    }
+    .console-btn:hover {
+        background: var(--red);
+        border-color: var(--red);
+        color: #fff;
+    }
+    .console-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 5000;
+        display: none;
+        align-items: flex-start;
+        justify-content: flex-end;
+        padding: 80px 32px;
+        background: rgba(0,0,0,0.25);
+    }
+    .console-overlay.open { display: flex; }
+    .console-window {
+        width: min(560px, 92vw);
+        background: rgba(10,10,10,0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 0 40px rgba(255,43,43,0.15);
+        animation: consoleIn .25s ease;
+    }
+    @keyframes consoleIn {
+        from { transform: translateY(-16px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .console-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        font-size: 12px;
+        letter-spacing: 2px;
+        color: var(--red);
+        text-transform: uppercase;
+    }
+    .console-close {
+        background: none;
+        border: none;
+        color: var(--dim);
+        font-family: var(--mono);
+        font-size: 13px;
+        cursor: none;
+    }
+    .console-close:hover { color: var(--red); }
+    .console-body {
+        padding: 16px;
+        font-size: 13px;
+        line-height: 1.9;
+        color: #c9c9c9;
+        min-height: 220px;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+    .console-body .ok { color: #4caf50; }
+    .console-body .warn { color: var(--red); }
+    .console-body .val { color: #fff; }
 
-        .quote-block::before {
-            content: '"';
-            color: var(--accent);
-        }
-
-        .quote-block::after {
-            content: '"';
-            color: var(--accent);
-        }
-
-        /* footer */
-        footer {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px 12px;
-            margin-top: 45px;
-            padding-top: 20px;
-            border-top: 1px solid var(--surface2);
-            color: var(--subtext);
-            font-size: 0.88rem;
-        }
-
-        footer .accent {
-            color: var(--accent);
-        }
-
-        footer .dot {
-            color: var(--surface2);
-        }
-
-        /* responsive */
-        @media (max-width: 800px) {
-            body {
-                padding: 20px;
-            }
-
-            .hero {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 20px;
-            }
-
-            .avatar {
-                width: 140px;
-                height: 140px;
-            }
-
-            .hero-text h1 {
-                font-size: clamp(2rem, 12vw, 3rem);
-            }
-
-            .layout {
-                grid-template-columns: 1fr;
-                gap: 25px;
-            }
-
-            .column {
-                gap: 22px;
-            }
-        }
-    </style>
+    @media (max-width: 640px) {
+        main { padding: 0 18px 40px; }
+        body { cursor: auto; }
+        .cursor { display: none; }
+        .glitch-title { letter-spacing: -2px; }
+        .hot-bg { inset: -100px; }
+    }
+</style>
 </head>
 <body>
 
-    <main>
-        <!-- hero -->
-        <div class="hero">
-            <img src="avatar.png" alt="avatar" class="avatar">
-            <div class="hero-text">
-                <h1>Stickqq</h1>
-                <p>
-                    Обычный паренек<br>
-                    Nazar
+<!-- HOT HOT HOT animated background -->
+<div class="hot-bg" id="hot-bg"></div>
+
+<div class="grid-bg"></div>
+<div class="scanline"></div>
+<div class="cursor" id="cursor"><div class="dot"></div></div>
+
+<main>
+
+    <!-- HUD -->
+    <div class="hud">
+        <span>STICKQQ<b class="blink">_</b>OS v2.0</span>
+        <span id="hud-clock">00:00:00</span>
+        <span class="hud-right">
+            <span class="blink">● REC</span>
+            <button class="console-btn" id="console-btn" title="console">&gt;_</button>
+        </span>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-top">
+            <div class="avatar-wrap">
+                <img src="avatar.png" alt="avatar" class="avatar">
+            </div>
+            <div>
+                <h1 class="glitch-title" data-text="STICKQQ">STICKQQ</h1>
+                <p class="hero-sub">
+                    Обычный паренек по имени <b>Nazar</b>.
                 </p>
             </div>
         </div>
 
-        <!-- two columns -->
-        <div class="layout">
-            <div class="column">
-                <!-- stek -->
-                <section>
-                    <span class="section-title">stek</span>
-                    <div class="tag-list">
-                        <span>Lua</span>
-                        <span>idk</span>
-                        <span>idk</span>
-                        <span>idk</span>
-                    </div>
-                </section>
-
-                <!-- currently -->
-                <section>
-                    <span class="section-title">currently</span>
-                    <div class="stack-list">
-                        <span>doing fucking nothing</span>
-                        <span>learning Lua</span>
-                        <span>reading <a href="https://steamcommunity.com/profiles/76561199138412423/">Steam Profile</a></span>
-                    </div>
-                </section>
-
-<!-- setup -->
-<section>
-    <span class="section-title">setup</span>
-    <div class="stack-list">
-        <span>os: Windows 10  </span>
-        <span>Media player: Winamp 2.95 , VLC </span>
-        <span>editor: Sublime text 3</span>
-        <span>VPN: <a href="https://one.one.one.one/">1.1.1.1 WARP</a></span>
-        <span>processor: intel xeon E3-1240v5</span>
-        <span>videocard: Nvidia GTX 1660 SUPER 6GB</span>
+        <div class="scroll-hint">▼ SCROLL ▼</div>
     </div>
-</section>            </div>
 
-            <div class="column">
-                <!-- friends -->
-                <section>
-                    <span class="section-title">friends</span>
-                    <div class="link-grid">
-                        <a href="https://samposa_1337.codeberg.page/">Samposa_1337</a>
-                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1">idk</a>
-                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1">idk</a>
-                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1">idk</a>
-                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1">idk</a>
-                    </div>
-                </section>
-
-      
-
-                <!-- links -->
-                <section>
-                    <span class="section-title">links</span>
-                    <div class="link-grid">
-                        <a href="https://t.me/StickNazar">Telegram</a>
-                        <a href="https://t.me/stickqqbio">Telegram Channel</a>
-                         <a href="https://steamcommunity.com/profiles/76561199138412423/">Steam</a>
-
-                    </div>
-                </section>
-                <!-- Games -->
-
-                <section>
-                          <span class="section-title"> favorite games </span>
-                            <div class="stack-list">
-                              <span>Garry's Mod</span>
-                              <span>SCP: Secret Labaratory</span>
-                              <span>Counter-Strike 1.6</span>
-                      </section>
-                  </div>
+    <!-- STEK -->
+    <section class="reveal">
+        <div class="sec-head"><span class="num">01</span><h2>stek</h2></div>
+        <div class="tags">
+            <span class="tag">Lua</span>
+            <span class="tag">idk</span>
+            <span class="tag">idk</span>
+            <span class="tag">idk</span>
         </div>
+    </section>
 
-           
-        <!-- footer -->
-        <footer>
-            <span class="accent">#</span> Stickqq MAKE GREAT <span class="accent">#STQQ</span>
-            <span class="dot">·</span>
-            <span>2026</span>
-        </footer>
-    </main>
+    <!-- CURRENTLY / SETUP -->
+    <section class="reveal">
+        <div class="sec-head"><span class="num">02</span><h2>system stats</h2></div>
+        <div class="cards">
+            <div class="card">
+                <span class="corner">[ACTIVE]</span>
+                <h3>// currently</h3>
+                <ul>
+                    <li>doing fucking nothing</li>
+                    <li>learning Lua</li>
+                    <li>reading <a href="https://steamcommunity.com/profiles/76561199138412423/">Steam Profile</a></li>
+                </ul>
+            </div>
+            <div class="card">
+                <span class="corner">[HARDWARE]</span>
+                <h3>// setup</h3>
+                <ul>
+                    <li>os: Windows 10</li>
+                    <li>player: Winamp 2.95, VLC</li>
+                    <li>editor: Sublime Text 3</li>
+                    <li>vpn: <a href="https://one.one.one.one/">1.1.1.1 WARP</a></li>
+                    <li>cpu: Intel Xeon E3-1240v5</li>
+                    <li>gpu: NVIDIA GTX 1660 SUPER 6GB</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- LINKS -->
+    <section class="reveal">
+        <div class="sec-head"><span class="num">03</span><h2>connect</h2></div>
+        <div class="links-grid">
+            <a class="big-link" href="https://t.me/StickNazar"><span>Telegram</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://t.me/stickqqbio"><span>Channel</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://steamcommunity.com/profiles/76561199138412423/"><span>Steam</span><span class="arrow">-></span></a>
+        </div>
+    </section>
+
+    <!-- GAMES -->
+    <section class="reveal">
+        <div class="sec-head"><span class="num">04</span><h2>favorite games</h2></div>
+        <div class="games-marquee">
+            <div class="games-track" id="games-track">
+                <span>Garry's Mod <i class="sep">//</i> Half-Life 2 <i class="sep">//</i> Source Games <i class="sep">//</i></span>
+                <span>Garry's Mod <i class="sep">//</i> Half-Life 2 <i class="sep">//</i> Source Games <i class="sep">//</i></span>
+            </div>
+        </div>
+        <div class="src-forever">SOURCE ENGINE FOREVER!</div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <span><span class="red">#</span> STICKQQ MAKE GREAT <span class="red">#STQQ</span></span>
+        <span id="footer-year">2026</span>
+        <span>SUPERHOT-inspired build</span>
+    </footer>
+
+</main>
+
+<!-- CONSOLE OVERLAY -->
+<div class="console-overlay" id="console-overlay">
+    <div class="console-window">
+        <div class="console-head">
+            <span>stickqq@os: ~</span>
+            <button class="console-close" id="console-close">[x]</button>
+        </div>
+        <div class="console-body" id="console-body"></div>
+    </div>
+</div>
+
+<script>
+// ---------- console ----------
+const overlay = document.getElementById('console-overlay');
+const cbody = document.getElementById('console-body');
+const cbtn = document.getElementById('console-btn');
+const cclose = document.getElementById('console-close');
+const bootTime = Date.now();
+let consoleOpen = false, typing = false;
+
+function lineHtml(l) {
+    return `<span class="${l.cls || ''}">${l.text}</span>`;
+}
+
+function getStats() {
+    return [
+        { text: '$ stickqq --stats', cls: 'warn' },
+        { text: '[OK] boot sequence complete', cls: 'ok' },
+        { text: 'build version ......... <span class="val">v2.0-SUPERHOT</span>' },
+        { text: 'build date ............ <span class="val">2026-10-12</span>' },
+        { text: 'kernel ................ <span class="val">STICKQQ_OS</span>' },
+        { text: 'theme ................. <span class="val">superhot/dark</span>' },
+        { text: 'source engine ......... <span class="val">FOREVER</span>' },
+        { text: 'user .................. <span class="val">Nazar (обычный паренек)</span>' },
+        { text: 'status ................ <span class="val">doing fucking nothing</span>' },
+        { text: 'uptime ................ <span class="val">' + Math.floor((Date.now()-bootTime)/1000) + 's</span>' },
+        { text: 'resolution ............ <span class="val">' + innerWidth + 'x' + innerHeight + '</span>' },
+        { text: 'scroll ................ <span class="val">' + Math.round(scrollY) + 'px</span>' },
+        { text: 'hot lines ............. <span class="val">' + document.querySelectorAll('.hot-line').length + ' active</span>' },
+        { text: 'cursor ................ <span class="val">' + Math.round(tx) + ',' + Math.round(ty) + '</span>' },
+        { text: '$ <span class="ok">█</span>' },
+    ];
+}
+
+function typeLines(lines) {
+    typing = true;
+    cbody.innerHTML = '';
+    let i = 0;
+    (function next() {
+        if (!consoleOpen || i >= lines.length) { typing = false; return; }
+        const div = document.createElement('div');
+        div.innerHTML = lineHtml(lines[i]);
+        cbody.appendChild(div);
+        i++;
+        setTimeout(next, 45);
+    })();
+}
+
+function openConsole() {
+    consoleOpen = true;
+    overlay.classList.add('open');
+    if (!typing) typeLines(getStats());
+}
+function closeConsole() {
+    consoleOpen = false;
+    overlay.classList.remove('open');
+}
+cbtn.addEventListener('click', openConsole);
+cclose.addEventListener('click', closeConsole);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeConsole(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeConsole(); });
+
+// ---------- build HOT background lines ----------
+const hotBg = document.getElementById('hot-bg');
+const hotChunk = ('HOT&nbsp;&nbsp;'.repeat(60)) + ('HOT&nbsp;&nbsp;'.repeat(60));
+for (let i = 0; i < 30; i++) {
+    const line = document.createElement('div');
+    line.className = 'hot-line';
+    line.innerHTML = hotChunk;
+    line.style.animationDelay = (-Math.random() * 40) + 's';
+    hotBg.appendChild(line);
+}
+
+// ---------- custom cursor ----------
+const cursor = document.getElementById('cursor');
+let cx = innerWidth/2, cy = innerHeight/2, tx = cx, ty = cy;
+addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
+document.querySelectorAll('a, .tag').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hit'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hit'));
+});
+
+// ---------- smooth parallax ----------
+const cards = [...document.querySelectorAll('.card')];
+const heroTitle = document.querySelector('.glitch-title');
+let px = 0, py = 0;
+
+function loop() {
+    cx += (tx - cx) * 0.35;
+    cy += (ty - cy) * 0.35;
+    cursor.style.left = cx + 'px';
+    cursor.style.top = cy + 'px';
+
+    const nx = (tx / innerWidth - 0.5), ny = (ty / innerHeight - 0.5);
+    px += (nx * 14 - px) * 0.06;
+    py += (ny * 14 - py) * 0.06;
+
+    cards.forEach((c, i) => {
+        const f = (i % 3 + 1) / 3;
+        c.style.transform = `translate(${px * f}px, ${py * f}px)`;
+    });
+    if (heroTitle) heroTitle.style.textShadow = `${px}px ${py}px 0 rgba(255,43,43,.35)`;
+
+    requestAnimationFrame(loop);
+}
+loop();
+
+// ---------- HUD clock ----------
+const clock = document.getElementById('hud-clock');
+setInterval(() => {
+    clock.textContent = new Date().toLocaleTimeString('ru-RU');
+}, 500);
+
+// ---------- reveal on scroll ----------
+const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ---------- random glitch bursts on title ----------
+const title = document.querySelector('.glitch-title');
+setInterval(() => {
+    if (Math.random() < 0.35) {
+        title.style.transform = `translate(${(Math.random()*8-4)|0}px, ${(Math.random()*4-2)|0}px)`;
+        setTimeout(() => title.style.transform = '', 90);
+    }
+}, 1400);
+</script>
 
 </body>
 </html>
