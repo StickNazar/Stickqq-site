@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STICKQQ</title>
+<title>STICKQQ // SUPERHOT</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
     :root {
@@ -377,6 +377,17 @@
     .big-link .arrow { transition: transform .25s; }
     .big-link:hover .arrow { transform: translateX(6px); }
 
+    .fluxer-line {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: .9rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .fluxer-label { color: var(--dim); }
+
     /* games */
     .games-marquee {
         overflow: hidden;
@@ -459,6 +470,13 @@
         transition: opacity .7s ease, transform .7s ease;
     }
     .reveal.visible { opacity: 1; transform: none; }
+
+    .pc-notice {
+        color: var(--red);
+        font-weight: bold;
+        animation: noticePulse 1.6s ease-in-out infinite;
+    }
+    @keyframes noticePulse { 50% { opacity: .35; } }
 
     /* ---------- console ---------- */
     .hud-right {
@@ -546,8 +564,14 @@
         .cursor { display: none; }
         .glitch-title { letter-spacing: -2px; }
         .hot-bg { inset: -100px; }
+        .console-btn { display: none; }
+        .hud { flex-wrap: wrap; gap: 8px 16px; }
+    }
+    @media (hover: none) {
+        .console-btn { display: none; }
     }
 </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -563,6 +587,7 @@
     <!-- HUD -->
     <div class="hud">
         <span>STICKQQ<b class="blink">_</b>OS v2.0</span>
+        <span class="pc-notice">&#9654; BEST EXPERIENCED ON PC &#9664;</span>
         <span id="hud-clock">00:00:00</span>
         <span class="hud-right">
             <span class="blink">● REC</span>
@@ -633,6 +658,13 @@
             <a class="big-link" href="https://t.me/StickNazar"><span>Telegram</span><span class="arrow">-></span></a>
             <a class="big-link" href="https://t.me/stickqqbio"><span>Channel</span><span class="arrow">-></span></a>
             <a class="big-link" href="https://steamcommunity.com/profiles/76561199138412423/"><span>Steam</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://github.com/StickNazar"><span>GitHub</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://rutracker.org/forum/profile.php?mode=viewprofile&amp;u=51370159"><span>RuTracker</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://osu.ppy.sh/users/19750259"><span>osu!</span><span class="arrow">-></span></a>
+        </div>
+        <div class="fluxer-line">
+            <span class="fluxer-label">fluxer:</span>
+            <span class="tag">Stickqq#7573</span>
         </div>
     </section>
 
@@ -682,8 +714,19 @@ function lineHtml(l) {
 }
 
 function getStats() {
+    const nav = window.navigator;
+    const ua = nav.userAgent;
+    let browser = 'unknown';
+    if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('Edg')) browser = 'Edge';
+    else if (ua.includes('Chrome')) browser = 'Chrome';
+    else if (ua.includes('Safari')) browser = 'Safari';
+    const online = nav.onLine ? 'online' : 'OFFLINE';
+    const mem = nav.deviceMemory ? nav.deviceMemory + ' GB' : 'unknown';
+    const cores = nav.hardwareConcurrency || 'unknown';
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown';
     return [
-        { text: '$ stickqq --stats', cls: 'warn' },
+        { text: '$ stickqq --stats --full', cls: 'warn' },
         { text: '[OK] boot sequence complete', cls: 'ok' },
         { text: 'build version ......... <span class="val">v2.0-SUPERHOT</span>' },
         { text: 'build date ............ <span class="val">2026-10-12</span>' },
@@ -691,14 +734,36 @@ function getStats() {
         { text: 'theme ................. <span class="val">superhot/dark</span>' },
         { text: 'source engine ......... <span class="val">FOREVER</span>' },
         { text: 'user .................. <span class="val">Nazar (обычный паренек)</span>' },
+        { text: 'fluxer ................ <span class="val">Stickqq#7573</span>' },
         { text: 'status ................ <span class="val">doing fucking nothing</span>' },
         { text: 'uptime ................ <span class="val">' + Math.floor((Date.now()-bootTime)/1000) + 's</span>' },
-        { text: 'resolution ............ <span class="val">' + innerWidth + 'x' + innerHeight + '</span>' },
+        { text: '--- DEVICE ---', cls: 'warn' },
+        { text: 'ip address ............ <span class="val" id="stat-ip">scanning...</span>' },
+        { text: 'device ................ <span class="val">' + (nav.platform || 'unknown') + '</span>' },
+        { text: 'browser ............... <span class="val">' + browser + '</span>' },
+        { text: 'language .............. <span class="val">' + nav.language + '</span>' },
+        { text: 'timezone .............. <span class="val">' + tz + '</span>' },
+        { text: 'cores ................. <span class="val">' + cores + '</span>' },
+        { text: 'ram ................... <span class="val">' + mem + '</span>' },
+        { text: 'screen ................ <span class="val">' + screen.width + 'x' + screen.height + ' @' + devicePixelRatio + 'x</span>' },
+        { text: 'viewport .............. <span class="val">' + innerWidth + 'x' + innerHeight + '</span>' },
+        { text: 'network ............... <span class="val">' + online + '</span>' },
+        { text: 'touch points .......... <span class="val">' + (nav.maxTouchPoints || 0) + '</span>' },
         { text: 'scroll ................ <span class="val">' + Math.round(scrollY) + 'px</span>' },
-        { text: 'hot lines ............. <span class="val">' + document.querySelectorAll('.hot-line').length + ' active</span>' },
         { text: 'cursor ................ <span class="val">' + Math.round(tx) + ',' + Math.round(ty) + '</span>' },
+        { text: 'hot lines ............. <span class="val">' + document.querySelectorAll('.hot-line').length + ' active</span>' },
         { text: '$ <span class="ok">█</span>' },
     ];
+}
+
+// fetch real IP (best effort)
+let cachedIP = null;
+function fetchIP() {
+    if (cachedIP) return Promise.resolve(cachedIP);
+    return fetch('https://api.ipify.org?format=json')
+        .then(r => r.json())
+        .then(d => { cachedIP = d.ip; return cachedIP; })
+        .catch(() => 'hidden/vpn');
 }
 
 function typeLines(lines) {
@@ -706,7 +771,12 @@ function typeLines(lines) {
     cbody.innerHTML = '';
     let i = 0;
     (function next() {
-        if (!consoleOpen || i >= lines.length) { typing = false; return; }
+        if (!consoleOpen || i >= lines.length) {
+            typing = false;
+            const ipEl = cbody.querySelector('#stat-ip');
+            if (ipEl) fetchIP().then(ip => { ipEl.textContent = ip; });
+            return;
+        }
         const div = document.createElement('div');
         div.innerHTML = lineHtml(lines[i]);
         cbody.appendChild(div);
