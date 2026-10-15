@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STICKQQ // SUPERHOT</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+    :root {
+        --bg: #0a0a0a;
+        --ink: #e8e8e8;
+        --red: #ff2b2b;
+        --glass: rgba(255, 255, 255, 0.04);
+        --glass-border: rgba(255, 255, 255, 0.14);
+        --dim: #8a8a8a;
+        --mono: "Courier New", Courier, monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--mono);
+        overflow-x: hidden;
+        cursor: none;
+    }
+
+    ::selection { background: var(--red); color: #fff; }
+
+    /* ---------- custom crosshair cursor ---------- */
+    .cursor {
+        position: fixed;
+        top: 0; left: 0;
+        width: 26px; height: 26px;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        mix-blend-mode: difference;
+    }
+    .cursor::before, .cursor::after {
+        content: "";
+        position: absolute;
+        background: #fff;
+    }
+    .cursor::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
+    .cursor::after { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
+    .cursor .dot {
+        position: absolute; left: 50%; top: 50%;
+        width: 6px; height: 6px;
+        background: #fff;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .cursor.hit { transform: translate(-50%,-50%) scale(1.6) rotate(45deg); }
+    @media (hover: none) { .cursor { display: none; } body { cursor: auto; } }
+
+    /* ---------- HOT HOT HOT animated background ---------- */
+    .hot-bg {
+        position: fixed;
+        inset: -200px;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+        transform: rotate(-12deg);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .hot-line {
+        white-space: nowrap;
+        font-size: 13px;
+        letter-spacing: 8px;
+        color: rgba(255, 43, 43, 0.10);
+        text-transform: uppercase;
+        line-height: 2.2;
+        animation: hotScroll 40s linear infinite;
+    }
+    .hot-line:nth-child(even) {
+        color: rgba(255, 255, 255, 0.05);
+        animation-direction: reverse;
+        animation-duration: 55s;
+    }
+    .hot-line:nth-child(3n) { animation-duration: 70s; }
+    @keyframes hotScroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+
+    .grid-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 80%);
+    }
+    .scanline {
+        position: fixed;
+        left: 0; right: 0;
+        height: 120px;
+        background: linear-gradient(to bottom, transparent, rgba(255,43,43,0.07), transparent);
+        z-index: 1;
+        pointer-events: none;
+        animation: scan 7s linear infinite;
+    }
+    @keyframes scan {
+        0% { top: -15%; }
+        100% { top: 110%; }
+    }
+
+    main { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 0 32px 60px; }
+
+    /* ---------- top HUD bar ---------- */
+    .hud {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 0;
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--ink);
+    }
+    .hud .blink { animation: blink 1.2s steps(1) infinite; color: var(--red); }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ---------- HERO ---------- */
+    .hero {
+        min-height: 82vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+    }
+
+    .hero-top {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        flex-wrap: wrap;
+    }
+
+    .avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .avatar {
+        width: 200px; height: 200px;
+        object-fit: cover;
+        display: block;
+        border: 3px solid var(--ink);
+        filter: grayscale(1) contrast(1.15);
+        transition: filter .3s;
+        background: #1a1a1a;
+    }
+    .avatar-wrap::before {
+        content: "TARGET://STICKQQ";
+        position: absolute;
+        bottom: -22px; left: 0;
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: var(--red);
+    }
+    .avatar-wrap::after {
+        content: "";
+        position: absolute;
+        inset: -14px;
+        border: 1px dashed var(--red);
+        opacity: .6;
+        animation: spinbox 14s linear infinite;
+    }
+    @keyframes spinbox { to { transform: rotate(360deg); } }
+    .avatar-wrap:hover .avatar { filter: grayscale(0) contrast(1.05); }
+
+    .glitch-title {
+        font-size: clamp(3.5rem, 12vw, 9rem);
+        line-height: .9;
+        font-weight: bold;
+        letter-spacing: -4px;
+        text-transform: uppercase;
+        position: relative;
+        user-select: none;
+        color: var(--ink);
+    }
+    .glitch-title::before, .glitch-title::after {
+        content: attr(data-text);
+        position: absolute;
+        left: 0; top: 0;
+        width: 100%;
+    }
+    .glitch-title::before {
+        color: var(--red);
+        animation: glitch1 2.8s infinite linear alternate-reverse;
+        clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+    }
+    .glitch-title::after {
+        color: var(--ink);
+        animation: glitch2 3.4s infinite linear alternate-reverse;
+        clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+        opacity: .85;
+    }
+    @keyframes glitch1 {
+        0%   { transform: translate(0); }
+        20%  { transform: translate(-4px, 2px); }
+        40%  { transform: translate(3px, -1px); }
+        60%  { transform: translate(-2px, 1px); }
+        80%  { transform: translate(4px, -2px); }
+        100% { transform: translate(0); }
+    }
+    @keyframes glitch2 {
+        0%   { transform: translate(0); }
+        25%  { transform: translate(3px, -2px); }
+        50%  { transform: translate(-3px, 2px); }
+        75%  { transform: translate(2px, 1px); }
+        100% { transform: translate(0); }
+    }
+
+    .hero-sub {
+        margin-top: 22px;
+        font-size: clamp(1rem, 2.4vw, 1.4rem);
+        color: var(--dim);
+        max-width: 560px;
+        line-height: 1.6;
+    }
+    .hero-sub b { color: var(--red); }
+
+    .scroll-hint {
+        position: absolute;
+        bottom: 24px; left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        letter-spacing: 4px;
+        color: var(--dim);
+        animation: bounce 1.6s ease-in-out infinite;
+        opacity: .7;
+    }
+    @keyframes bounce { 50% { transform: translate(-50%, 10px); } }
+
+    /* ---------- sections ---------- */
+    section { margin-top: 90px; }
+
+    .sec-head {
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+        margin-bottom: 34px;
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 10px;
+    }
+    .sec-head .num {
+        font-size: 13px;
+        color: var(--red);
+        letter-spacing: 2px;
+    }
+    .sec-head h2 {
+        font-size: clamp(1.8rem, 5vw, 3rem);
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        font-weight: bold;
+    }
+
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 22px;
+    }
+
+    .card {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        padding: 26px;
+        position: relative;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s;
+        will-change: transform;
+    }
+    .card:hover {
+        border-color: var(--ink);
+        box-shadow: 8px 8px 0 var(--red);
+        transform: translate(-4px, -4px);
+    }
+    .card .corner {
+        position: absolute;
+        top: 8px; right: 12px;
+        font-size: 10px;
+        color: var(--red);
+        letter-spacing: 2px;
+    }
+    .card h3 {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-bottom: 16px;
+        color: var(--red);
+    }
+    .card ul { list-style: none; }
+    .card li {
+        padding: 7px 0 7px 20px;
+        position: relative;
+        font-size: .95rem;
+        line-height: 1.5;
+        color: var(--dim);
+        border-bottom: 1px dashed rgba(255,255,255,.15);
+    }
+    .card li:last-child { border-bottom: none; }
+    .card li::before {
+        content: ">";
+        position: absolute;
+        left: 0;
+        color: var(--red);
+        font-weight: bold;
+    }
+    .card li a { color: var(--ink); font-weight: bold; }
+
+    /* tags */
+    .tags { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tag {
+        padding: 8px 18px;
+        border: 2px solid var(--ink);
+        font-size: .85rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        background: transparent;
+        color: var(--ink);
+        transition: all .18s ease;
+        user-select: none;
+    }
+    .tag:hover {
+        background: var(--red);
+        border-color: var(--red);
+        color: #fff;
+        transform: skewX(-8deg);
+    }
+
+    /* link buttons */
+    .links-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+    }
+    .big-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px 24px;
+        border: 2px solid var(--ink);
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 1.05rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        overflow: hidden;
+        transition: color .2s;
+    }
+    .big-link::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--red);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform .25s ease;
+        z-index: 0;
+    }
+    .big-link:hover::before { transform: scaleX(1); }
+    .big-link:hover { color: #fff; }
+    .big-link span { position: relative; z-index: 1; }
+    .big-link .arrow { transition: transform .25s; }
+    .big-link:hover .arrow { transform: translateX(6px); }
+
+    .fluxer-line {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: .9rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .fluxer-label { color: var(--dim); }
+
+    .music-btn-big {
+        font-size: 18px;
+        padding: 4px 14px;
+        border-color: var(--red);
+        color: var(--red);
+        animation: musicPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes musicPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255,43,43,.45); }
+        50% { box-shadow: 0 0 14px 3px rgba(255,43,43,.45); }
+    }
+
+    /* ---------- music player ---------- */
+    .music-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 5000;
+        display: none;
+        background: rgba(5,5,5,0.82);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .music-overlay.open { display: block; }
+    .music-window {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background:
+            radial-gradient(ellipse at 50% 0%, rgba(255,43,43,0.10), transparent 60%),
+            rgba(10,10,10,0.6);
+        animation: playerIn .45s cubic-bezier(.2,1.2,.3,1);
+        overflow-y: auto;
+    }
+    @keyframes playerIn {
+        from { clip-path: inset(0 0 100% 0); opacity: 0; }
+        to { clip-path: inset(0 0 0% 0); opacity: 1; }
+    }
+    .music-window.closing { animation: playerOut .3s ease forwards; }
+    @keyframes playerOut {
+        to { clip-path: inset(0 0 100% 0); opacity: 0; }
+    }
+    .music-stage {
+        flex: 1;
+        max-width: 760px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 30px 24px 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+    .music-nowplaying {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .m-cover-wrap {
+        width: min(240px, 60vw);
+        height: min(240px, 60vw);
+        border: 2px solid var(--red);
+        box-shadow: 0 0 40px rgba(255,43,43,0.25);
+        flex-shrink: 0;
+        animation: coverSpinGlow 6s ease-in-out infinite;
+        background: #111;
+    }
+    @keyframes coverSpinGlow {
+        0%, 100% { box-shadow: 0 0 30px rgba(255,43,43,.2); }
+        50% { box-shadow: 0 0 60px rgba(255,43,43,.5); }
+    }
+    .m-cover { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .m-meta { flex: 1; min-width: 220px; }
+    .m-label {
+        font-size: 11px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--red);
+        margin-bottom: 10px;
+    }
+    .m-title {
+        font-size: clamp(1.6rem, 5vw, 2.6rem);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        line-height: 1.1;
+        word-break: break-word;
+    }
+    .m-artist {
+        margin-top: 10px;
+        font-size: clamp(1rem, 2.6vw, 1.3rem);
+        color: var(--dim);
+    }
+    .m-album {
+        margin-top: 4px;
+        font-size: .9rem;
+        color: var(--dim);
+        font-style: italic;
+    }
+    .music-controls {
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+    }
+    .m-btn {
+        background: transparent;
+        border: 2px solid var(--ink);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 16px;
+        font-weight: bold;
+        padding: 12px 22px;
+        cursor: none;
+        transition: all .15s ease;
+    }
+    .m-btn:hover { background: var(--red); border-color: var(--red); color: #fff; }
+    .m-play { min-width: 84px; border-color: var(--red); color: var(--red); }
+    .m-play:hover { color: #fff; }
+    .music-progress {
+        height: 10px;
+        border: 1px solid rgba(255,255,255,0.25);
+        cursor: none;
+        position: relative;
+    }
+    .m-fill {
+        position: absolute;
+        inset: 0;
+        background: var(--red);
+        transform-origin: left;
+        transform: scaleX(0);
+    }
+    .music-add {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .m-add-btn {
+        background: transparent;
+        border: 2px solid var(--red);
+        color: var(--red);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        padding: 10px 16px;
+        cursor: none;
+        transition: all .15s ease;
+        text-transform: uppercase;
+    }
+    .m-add-btn:hover { background: var(--red); color: #fff; }
+    .m-url {
+        flex: 1;
+        min-width: 160px;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.25);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 13px;
+        padding: 10px 12px;
+        outline: none;
+    }
+    .m-url:focus { border-color: var(--red); }
+    .m-credit {
+        margin-top: 10px;
+        text-align: center;
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--dim);
+    }
+    .m-credit a { color: var(--red); font-weight: bold; }
+
+    .m-time {
+        font-size: 12px;
+        color: var(--dim);
+        letter-spacing: 2px;
+        text-align: right;
+    }
+    .m-tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .m-tab {
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.25);
+        color: var(--dim);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 7px 14px;
+        cursor: none;
+        transition: all .15s ease;
+    }
+    .m-tab:hover { border-color: var(--red); color: var(--ink); }
+    .m-tab.active { border-color: var(--red); color: #fff; background: rgba(255,43,43,0.15); }
+
+    .music-list {
+        max-height: 260px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .music-list::-webkit-scrollbar { width: 6px; }
+    .music-list::-webkit-scrollbar-thumb { background: var(--red); }
+    .m-track {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255,255,255,0.12);
+        font-size: 13px;
+        color: var(--dim);
+        cursor: none;
+        transition: all .12s ease;
+    }
+    .m-track:hover { border-color: var(--red); color: var(--ink); }
+    .m-track.active { border-color: var(--red); color: #fff; background: rgba(255,43,43,0.12); }
+    .m-track .t-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .m-track .t-del { color: var(--red); font-weight: bold; padding: 0 4px; }
+    .m-track .t-del:hover { color: #fff; }
+    .music-empty { font-size: 13px; color: var(--dim); padding: 10px 4px; font-style: italic; }
+
+    /* games */
+    .games-marquee {
+        overflow: hidden;
+        border-top: 2px solid var(--ink);
+        border-bottom: 2px solid var(--ink);
+        padding: 18px 0;
+        white-space: nowrap;
+    }
+    .games-track {
+        display: inline-flex;
+        gap: 60px;
+        animation: marquee 18s linear infinite;
+        font-size: clamp(1.4rem, 4vw, 2.4rem);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        color: var(--ink);
+    }
+    .games-track span { display: inline-flex; align-items: center; gap: 60px; }
+    .games-track .sep { color: var(--red); }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    .src-forever {
+        margin-top: 26px;
+        text-align: center;
+        font-size: clamp(1.6rem, 5vw, 3rem);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        color: var(--red);
+        animation: foreverPulse 2s ease-in-out infinite;
+        user-select: none;
+    }
+    @keyframes foreverPulse {
+        0%, 100% { opacity: 1; text-shadow: 0 0 18px rgba(255,43,43,.6); }
+        50% { opacity: .55; text-shadow: 0 0 4px rgba(255,43,43,.2); }
+    }
+
+    /* quote */
+    .quote {
+        margin-top: 90px;
+        text-align: center;
+        font-size: clamp(1.2rem, 3.4vw, 2rem);
+        font-style: italic;
+        color: var(--dim);
+        position: relative;
+        padding: 40px 20px;
+    }
+    .quote::before, .quote::after {
+        content: "»";
+        position: absolute;
+        font-size: 5rem;
+        color: var(--red);
+        opacity: .25;
+        font-style: normal;
+    }
+    .quote::before { top: -10px; left: 8%; }
+    .quote::after { content: "«"; bottom: -30px; right: 8%; }
+
+    /* footer */
+    footer {
+        margin-top: 90px;
+        border-top: 2px solid var(--ink);
+        padding-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        justify-content: space-between;
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--dim);
+    }
+    footer .red { color: var(--red); font-weight: bold; }
+
+    /* reveal on scroll */
+    .reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    .pc-notice {
+        color: var(--red);
+        font-weight: bold;
+        animation: noticePulse 1.6s ease-in-out infinite;
+    }
+    @keyframes noticePulse { 50% { opacity: .35; } }
+
+    /* ---------- console ---------- */
+    .hud-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .console-btn {
+        background: transparent;
+        border: 2px solid var(--ink);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: bold;
+        padding: 2px 10px;
+        cursor: none;
+        letter-spacing: 1px;
+        transition: all .15s ease;
+    }
+    .console-btn:hover {
+        background: var(--red);
+        border-color: var(--red);
+        color: #fff;
+    }
+    .console-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 5000;
+        display: none;
+        align-items: flex-start;
+        justify-content: flex-end;
+        padding: 80px 32px;
+        background: rgba(0,0,0,0.25);
+    }
+    .console-overlay.open { display: flex; }
+    .console-window {
+        width: min(560px, 92vw);
+        background: rgba(10,10,10,0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 0 40px rgba(255,43,43,0.15);
+        animation: consoleIn .25s ease;
+    }
+    @keyframes consoleIn {
+        from { transform: translateY(-16px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .console-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        font-size: 12px;
+        letter-spacing: 2px;
+        color: var(--red);
+        text-transform: uppercase;
+    }
+    .console-close {
+        background: none;
+        border: none;
+        color: var(--dim);
+        font-family: var(--mono);
+        font-size: 13px;
+        cursor: none;
+    }
+    .console-close:hover { color: var(--red); }
+    .console-body {
+        padding: 16px;
+        font-size: 13px;
+        line-height: 1.9;
+        color: #c9c9c9;
+        min-height: 220px;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+    .console-body .ok { color: #4caf50; }
+    .console-body .warn { color: var(--red); }
+    .console-body .val { color: #fff; }
+
+    @media (max-width: 640px) {
+        main { padding: 0 18px 40px; }
+        body { cursor: auto; }
+        .cursor { display: none; }
+        .glitch-title { letter-spacing: -2px; }
+        .hot-bg { inset: -100px; }
+        .console-btn { display: none; }
+        .hud { flex-wrap: wrap; gap: 8px 16px; }
+    }
+    @media (hover: none) {
+        .console-btn { display: none; }
+    }
+</style>
+</head>
+<body>
+
+<!-- HOT HOT HOT animated background -->
+<div class="hot-bg" id="hot-bg"></div>
+
+<div class="grid-bg"></div>
+<div class="scanline"></div>
+<div class="cursor" id="cursor"><div class="dot"></div></div>
+
+<main>
+
+    <!-- HUD -->
+    <div class="hud">
+        <span>STICKQQ<b class="blink">_</b>OS v2.0</span>
+        <span class="pc-notice">&#9654; BEST EXPERIENCED ON PC &#9664;</span>
+        <span id="hud-clock">00:00:00</span>
+        <span class="hud-right">
+            <span class="blink">● REC</span>
+            <button class="console-btn music-btn-big" id="music-btn" title="player">&#9835;</button>
+            <button class="console-btn" id="console-btn" title="console">&gt;_</button>
+        </span>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-top">
+            <div class="avatar-wrap">
+                <img src="avatar.png" alt="avatar" class="avatar">
+            </div>
+            <div>
+                <h1 class="glitch-title" data-text="STICKQQ">STICKQQ</h1>
+                <p class="hero-sub">
+                    Обычный паренек по имени <b>Nazar</b>.
+                </p>
+            </div>
+        </div>
+
+        <div class="scroll-hint">▼ SCROLL ▼</div>
+    </div>
+
+    <!-- STEK -->
+    <section class="reveal">
+        <div class="sec-head"><span class="num">01</span><h2>stek</h2></div>
+        <div class="tags">
+            <span class="tag">Lua</span>
+            <span class="tag">idk</span>
+            <span class="tag">idk</span>
+            <span class="tag">idk</span>
+        </div>
+    </section>
+
+    <!-- CURRENTLY / SETUP -->
+    <section class="reveal">
+        <div class="sec-head"><span class="num">02</span><h2>system stats</h2></div>
+        <div class="cards">
+            <div class="card">
+                <span class="corner">[ACTIVE]</span>
+                <h3>// currently</h3>
+                <ul>
+                    <li>doing fucking nothing</li>
+                    <li>learning Lua</li>
+                    <li>reading <a href="https://steamcommunity.com/profiles/76561199138412423/">Steam Profile</a></li>
+                </ul>
+            </div>
+            <div class="card">
+                <span class="corner">[HARDWARE]</span>
+                <h3>// setup</h3>
+                <ul>
+                    <li>os: Windows 10</li>
+                    <li>player: Winamp 2.95, VLC</li>
+                    <li>editor: Sublime Text 3</li>
+                    <li>vpn: <a href="https://one.one.one.one/">1.1.1.1 WARP</a></li>
+                    <li>cpu: Intel Xeon E3-1240v5</li>
+                    <li>gpu: NVIDIA GTX 1660 SUPER 6GB</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- LINKS -->
+    <section class="reveal">
+        <div class="sec-head"><span class="num">03</span><h2>connect</h2></div>
+        <div class="links-grid">
+            <a class="big-link" href="https://t.me/StickNazar"><span>Telegram</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://t.me/stickqqbio"><span>Channel</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://steamcommunity.com/profiles/76561199138412423/"><span>Steam</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://github.com/StickNazar"><span>GitHub</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://rutracker.org/forum/profile.php?mode=viewprofile&amp;u=51370159"><span>RuTracker</span><span class="arrow">-></span></a>
+            <a class="big-link" href="https://osu.ppy.sh/users/19750259"><span>osu!</span><span class="arrow">-></span></a>
+        </div>
+        <div class="fluxer-line">
+            <span class="fluxer-label">fluxer:</span>
+            <span class="tag">Stickqq#7573</span>
+        </div>
+    </section>
+
+    <!-- GAMES -->
+    <section class="reveal">
+        <div class="sec-head"><span class="num">04</span><h2>favorite games</h2></div>
+        <div class="games-marquee">
+            <div class="games-track" id="games-track">
+                <span>Garry's Mod <i class="sep">//</i> Half-Life 2 <i class="sep">//</i> Source Games <i class="sep">//</i></span>
+                <span>Garry's Mod <i class="sep">//</i> Half-Life 2 <i class="sep">//</i> Source Games <i class="sep">//</i></span>
+            </div>
+        </div>
+        <div class="src-forever">SOURCE ENGINE FOREVER!</div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <span><span class="red">#</span> STICKQQ MAKE GREAT <span class="red">#STQQ</span></span>
+        <span id="footer-year">2026</span>
+        <span>SUPERHOT-inspired build</span>
+    </footer>
+
+</main>
+
+<!-- MUSIC PLAYER OVERLAY -->
+<div class="music-overlay" id="music-overlay">
+    <div class="music-window">
+        <div class="console-head">
+            <span>stickqq player v1.0</span>
+            <button class="console-close" id="music-close">[x]</button>
+        </div>
+        <div class="music-stage">
+            <div class="music-nowplaying">
+                <div class="m-meta">
+                    <div class="m-label">now playing</div>
+                    <div class="m-title" id="m-title">// nothing playing</div>
+                    <div class="m-artist" id="m-artist"></div>
+                    <div class="m-album" id="m-album"></div>
+                </div>
+            </div>
+            <div class="music-controls">
+                <button class="m-btn" id="m-prev">|&lt;</button>
+                <button class="m-btn m-play" id="m-play">&#9654;</button>
+                <button class="m-btn" id="m-next">&gt;|</button>
+            </div>
+            <div class="music-progress" id="m-progress"><div class="m-fill" id="m-fill"></div></div>
+            <div class="m-time" id="m-time">0:00 / 0:00</div>
+            <div class="m-tabs" id="m-tabs"></div>
+            <div class="music-list" id="music-list"></div>
+            <div class="m-credit">
+                all music hosted on <a href="https://archive.org" target="_blank" rel="noopener">archive.org</a>
+                &mdash; thanks, archive.org &#10084;
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONSOLE OVERLAY -->
+<div class="console-overlay" id="console-overlay">
+    <div class="console-window">
+        <div class="console-head">
+            <span>stickqq@os: ~</span>
+            <button class="console-close" id="console-close">[x]</button>
+        </div>
+        <div class="console-body" id="console-body"></div>
+    </div>
+</div>
+
+<script>
+// ---------- music player ----------
+const mOverlay = document.getElementById('music-overlay');
+const mWindow = mOverlay.querySelector('.music-window');
+const mListEl = document.getElementById('music-list');
+const mTitle = document.getElementById('m-title');
+const mArtist = document.getElementById('m-artist');
+const mAlbum = document.getElementById('m-album');
+const mFill = document.getElementById('m-fill');
+const mPlayBtn = document.getElementById('m-play');
+const audio = new Audio();
+let playlist = [];   // {name, src, artist, album, cover}
+let cur = -1;
+
+document.getElementById('music-btn').addEventListener('click', () => {
+    mWindow.classList.remove('closing');
+    mOverlay.classList.add('open');
+    // user's click counts as interaction -> browsers allow playback
+    if (cur === -1 && playlist.length) playTrack(0);
+    else if (cur !== -1 && audio.paused) { audio.play().catch(() => {}); mPlayBtn.innerHTML = '&#10074;&#10074;'; }
+});
+document.getElementById('music-close').addEventListener('click', () => {
+    mWindow.classList.add('closing');
+    setTimeout(() => { mOverlay.classList.remove('open'); mWindow.classList.remove('closing'); }, 280);
+});
+mOverlay.addEventListener('click', e => { if (e.target === mOverlay) document.getElementById('music-close').click(); });
+
+function renderList() {
+    mListEl.innerHTML = '';
+    if (!playlist.length) {
+        mListEl.innerHTML = '<div class="music-empty">// playlist empty</div>';
+        return;
+    }
+    playlist.forEach((t, i) => {
+        const div = document.createElement('div');
+        div.className = 'm-track' + (i === cur ? ' active' : '');
+        const sub = [t.artist, t.album].filter(Boolean).join(' — ');
+        div.innerHTML = `<span class="t-name">${i + 1}. ${t.name}${sub ? ` <span style="opacity:.6">(${sub})</span>` : ''}</span><span class="t-del" data-i="${i}">x</span>`;
+        div.addEventListener('click', e => {
+            if (e.target.classList.contains('t-del')) {
+                e.stopPropagation();
+                playlist.splice(i, 1);
+                if (i === cur) { audio.pause(); cur = -1; showNow(null); mPlayBtn.innerHTML = '&#9654;'; }
+                else if (i < cur) cur--;
+                renderList();
+                return;
+            }
+            playTrack(i);
+        });
+        mListEl.appendChild(div);
+    });
+}
+
+function showNow(t) {
+    if (!t) {
+        mTitle.textContent = '// nothing playing';
+        mArtist.textContent = '';
+        mAlbum.textContent = '';
+        return;
+    }
+    mTitle.textContent = t.name;
+    mArtist.textContent = t.artist || '';
+    mAlbum.textContent = t.album ? '«' + t.album + '»' : '';
+}
+
+function playTrack(i) {
+    if (i < 0 || i >= playlist.length) return;
+    cur = i;
+    audio.src = playlist[i].src;
+    audio.play().catch(() => {});
+    showNow(playlist[i]);
+    mPlayBtn.innerHTML = '&#10074;&#10074;';
+    renderList();
+}
+
+mPlayBtn.addEventListener('click', () => {
+    if (cur === -1) { if (playlist.length) playTrack(0); return; }
+    if (audio.paused) { audio.play(); mPlayBtn.innerHTML = '&#10074;&#10074;'; }
+    else { audio.pause(); mPlayBtn.innerHTML = '&#9654;'; }
+});
+document.getElementById('m-prev').addEventListener('click', () => { if (playlist.length) playTrack((cur - 1 + playlist.length) % playlist.length); });
+document.getElementById('m-next').addEventListener('click', () => { if (playlist.length) playTrack((cur + 1) % playlist.length); });
+audio.addEventListener('ended', () => { if (playlist.length) playTrack((cur + 1) % playlist.length); });
+const mTime = document.getElementById('m-time');
+function fmt(s) {
+    if (!isFinite(s)) return '0:00';
+    s = Math.floor(s);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+audio.addEventListener('timeupdate', () => {
+    if (audio.duration) mFill.style.transform = `scaleX(${audio.currentTime / audio.duration})`;
+    mTime.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
+});
+audio.addEventListener('loadedmetadata', () => {
+    mTime.textContent = '0:00 / ' + fmt(audio.duration);
+});
+document.getElementById('m-progress').addEventListener('click', e => {
+    if (!audio.duration) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+});
+
+// ---------- archive.org Music scanning ----------
+const IA_QUERY = 'creator:"StickNazar"'; // по этому полю плеер ищет твои альбомы
+const AUDIO_EXT = ['mp3', 'wav', 'ogg', 'oga', 'flac', 'alac', 'm4a', 'aac', 'opus', 'weba', 'aiff', 'aif', 'wma'];
+const mTabs = document.getElementById('m-tabs');
+let albums = { 'ALL': [] };  // 'ALL' = All Music
+let currentTab = 'ALL';
+
+function isAudio(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    return AUDIO_EXT.includes(ext);
+}
+function trackName(name) {
+    return decodeURIComponent(name).replace(/\.[^.]+$/, '');
+}
+
+function renderTabs() {
+    mTabs.innerHTML = '';
+    Object.keys(albums).forEach(key => {
+        if (!albums[key].length && key !== 'ALL') return;
+        const b = document.createElement('button');
+        b.className = 'm-tab' + (key === currentTab ? ' active' : '');
+        b.textContent = (key === 'ALL' ? 'All Music' : key) + ` (${albums[key].length})`;
+        b.addEventListener('click', () => {
+            currentTab = key;
+            playlist = [...albums[key]];
+            cur = -1;
+            audio.pause();
+            showNow(playlist[0] || null);
+            mPlayBtn.innerHTML = '&#9654;';
+            mTime.textContent = '0:00 / 0:00';
+            mFill.style.transform = 'scaleX(0)';
+            renderTabs();
+            renderList();
+        });
+        mTabs.appendChild(b);
+    });
+}
+
+async function scanMusic() {
+    try {
+        const params = new URLSearchParams();
+        params.set('q', IA_QUERY);
+        params.append('fl[]', 'identifier');
+        params.append('fl[]', 'title');
+        params.set('rows', '100');
+        params.set('output', 'json');
+        const res = await fetch('https://archive.org/advancedsearch.php?' + params.toString());
+        if (!res.ok) throw new Error('search http ' + res.status);
+        const data = await res.json();
+        const docs = (data.response && data.response.docs) || [];
+        if (!docs.length) {
+            mListEl.innerHTML = '<div class="music-empty">// альбомы не найдены — проверь поле creator на archive.org</div>';
+            return;
+        }
+        albums = { 'ALL': [] };
+
+        for (const doc of docs) {
+            try {
+                const r = await fetch('https://archive.org/metadata/' + doc.identifier);
+                if (!r.ok) continue;
+                const meta = await r.json();
+                const files = (meta && meta.files) || [];
+                const tracks = files
+                    .filter(f => f.name && !f.name.startsWith('_') && !f.private && isAudio(f.name))
+                    .map(f => ({
+                        name: trackName(f.name),
+                        src: `https://archive.org/download/${doc.identifier}/${encodeURIComponent(f.name)}`,
+                        album: doc.title || doc.identifier
+                    }));
+                if (!tracks.length) continue;
+                const albumName = doc.title || doc.identifier;
+                albums[albumName] = tracks;
+                albums['ALL'].push(...tracks);
+            } catch (_) { continue; }
+        }
+
+        if (!albums['ALL'].length) {
+            mListEl.innerHTML = '<div class="music-empty">// аудио не найдено в альбомах</div>';
+            return;
+        }
+        playlist = [...albums[currentTab]];
+        renderTabs();
+        renderList();
+        if (cur === -1 && playlist.length) showNow(playlist[0]);
+    } catch (err) {
+        mListEl.innerHTML = '<div class="music-empty">// не удалось загрузить альбомы (' + err.message + ')</div>';
+    }
+}
+scanMusic();
+renderList();
+
+// ---------- console ----------
+const overlay = document.getElementById('console-overlay');
+const cbody = document.getElementById('console-body');
+const cbtn = document.getElementById('console-btn');
+const cclose = document.getElementById('console-close');
+const bootTime = Date.now();
+let consoleOpen = false, typing = false;
+
+function lineHtml(l) {
+    return `<span class="${l.cls || ''}">${l.text}</span>`;
+}
+
+function getStats() {
+    const nav = window.navigator;
+    const ua = nav.userAgent;
+    let browser = 'unknown';
+    if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('Edg')) browser = 'Edge';
+    else if (ua.includes('Chrome')) browser = 'Chrome';
+    else if (ua.includes('Safari')) browser = 'Safari';
+    const online = nav.onLine ? 'online' : 'OFFLINE';
+    const mem = nav.deviceMemory ? nav.deviceMemory + ' GB' : 'unknown';
+    const cores = nav.hardwareConcurrency || 'unknown';
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown';
+    return [
+        { text: '$ stickqq --stats --full', cls: 'warn' },
+        { text: '[OK] boot sequence complete', cls: 'ok' },
+        { text: 'build version ......... <span class="val">v2.0-SUPERHOT</span>' },
+        { text: 'build date ............ <span class="val">2026-10-12</span>' },
+        { text: 'kernel ................ <span class="val">STICKQQ_OS</span>' },
+        { text: 'theme ................. <span class="val">superhot/dark</span>' },
+        { text: 'source engine ......... <span class="val">FOREVER</span>' },
+        { text: 'user .................. <span class="val">Nazar (обычный паренек)</span>' },
+        { text: 'fluxer ................ <span class="val">Stickqq#7573</span>' },
+        { text: 'status ................ <span class="val">doing fucking nothing</span>' },
+        { text: 'uptime ................ <span class="val">' + Math.floor((Date.now()-bootTime)/1000) + 's</span>' },
+        { text: '--- DEVICE ---', cls: 'warn' },
+        { text: 'ip address ............ <span class="val" id="stat-ip">scanning...</span>' },
+        { text: 'device ................ <span class="val">' + (nav.platform || 'unknown') + '</span>' },
+        { text: 'browser ............... <span class="val">' + browser + '</span>' },
+        { text: 'language .............. <span class="val">' + nav.language + '</span>' },
+        { text: 'timezone .............. <span class="val">' + tz + '</span>' },
+        { text: 'cores ................. <span class="val">' + cores + '</span>' },
+        { text: 'ram ................... <span class="val">' + mem + '</span>' },
+        { text: 'screen ................ <span class="val">' + screen.width + 'x' + screen.height + ' @' + devicePixelRatio + 'x</span>' },
+        { text: 'viewport .............. <span class="val">' + innerWidth + 'x' + innerHeight + '</span>' },
+        { text: 'network ............... <span class="val">' + online + '</span>' },
+        { text: 'touch points .......... <span class="val">' + (nav.maxTouchPoints || 0) + '</span>' },
+        { text: 'scroll ................ <span class="val">' + Math.round(scrollY) + 'px</span>' },
+        { text: 'cursor ................ <span class="val">' + Math.round(tx) + ',' + Math.round(ty) + '</span>' },
+        { text: 'hot lines ............. <span class="val">' + document.querySelectorAll('.hot-line').length + ' active</span>' },
+        { text: '$ <span class="ok">█</span>' },
+    ];
+}
+
+// fetch real IP (best effort)
+let cachedIP = null;
+function fetchIP() {
+    if (cachedIP) return Promise.resolve(cachedIP);
+    return fetch('https://api.ipify.org?format=json')
+        .then(r => r.json())
+        .then(d => { cachedIP = d.ip; return cachedIP; })
+        .catch(() => 'hidden/vpn');
+}
+
+function typeLines(lines) {
+    typing = true;
+    cbody.innerHTML = '';
+    let i = 0;
+    (function next() {
+        if (!consoleOpen || i >= lines.length) {
+            typing = false;
+            const ipEl = cbody.querySelector('#stat-ip');
+            if (ipEl) fetchIP().then(ip => { ipEl.textContent = ip; });
+            return;
+        }
+        const div = document.createElement('div');
+        div.innerHTML = lineHtml(lines[i]);
+        cbody.appendChild(div);
+        i++;
+        setTimeout(next, 45);
+    })();
+}
+
+function openConsole() {
+    consoleOpen = true;
+    overlay.classList.add('open');
+    if (!typing) typeLines(getStats());
+}
+function closeConsole() {
+    consoleOpen = false;
+    overlay.classList.remove('open');
+}
+cbtn.addEventListener('click', openConsole);
+cclose.addEventListener('click', closeConsole);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeConsole(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeConsole(); });
+
+// ---------- build HOT background lines ----------
+const hotBg = document.getElementById('hot-bg');
+const hotChunk = ('HOT&nbsp;&nbsp;'.repeat(60)) + ('HOT&nbsp;&nbsp;'.repeat(60));
+for (let i = 0; i < 30; i++) {
+    const line = document.createElement('div');
+    line.className = 'hot-line';
+    line.innerHTML = hotChunk;
+    line.style.animationDelay = (-Math.random() * 40) + 's';
+    hotBg.appendChild(line);
+}
+
+// ---------- custom cursor ----------
+const cursor = document.getElementById('cursor');
+let cx = innerWidth/2, cy = innerHeight/2, tx = cx, ty = cy;
+addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
+document.querySelectorAll('a, .tag').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hit'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hit'));
+});
+
+// ---------- smooth parallax ----------
+const cards = [...document.querySelectorAll('.card')];
+const heroTitle = document.querySelector('.glitch-title');
+let px = 0, py = 0;
+
+function loop() {
+    cx += (tx - cx) * 0.35;
+    cy += (ty - cy) * 0.35;
+    cursor.style.left = cx + 'px';
+    cursor.style.top = cy + 'px';
+
+    const nx = (tx / innerWidth - 0.5), ny = (ty / innerHeight - 0.5);
+    px += (nx * 14 - px) * 0.06;
+    py += (ny * 14 - py) * 0.06;
+
+    cards.forEach((c, i) => {
+        const f = (i % 3 + 1) / 3;
+        c.style.transform = `translate(${px * f}px, ${py * f}px)`;
+    });
+    if (heroTitle) heroTitle.style.textShadow = `${px}px ${py}px 0 rgba(255,43,43,.35)`;
+
+    requestAnimationFrame(loop);
+}
+loop();
+
+// ---------- HUD clock ----------
+const clock = document.getElementById('hud-clock');
+setInterval(() => {
+    clock.textContent = new Date().toLocaleTimeString('ru-RU');
+}, 500);
+
+// ---------- reveal on scroll ----------
+const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ---------- random glitch bursts on title ----------
+const title = document.querySelector('.glitch-title');
+setInterval(() => {
+    if (Math.random() < 0.35) {
+        title.style.transform = `translate(${(Math.random()*8-4)|0}px, ${(Math.random()*4-2)|0}px)`;
+        setTimeout(() => title.style.transform = '', 90);
+    }
+}, 1400);
+</script>
+
+</body>
+</html>
