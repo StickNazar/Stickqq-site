@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stickqq</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --surface: #0d0d0d;
+            --surface2: #1a1a1a;
+
+            --text: #c5c5c5;
+            --subtext: #5C743B;
+
+            --accent: #FF00FF;
+            --muted: #5C743B;
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        ::selection {
+            background: rgba(143, 188, 143, 0.25);
+            color: var(--text);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            padding: 28px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        main {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        /* hero */
+        .hero {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            margin-bottom: 45px;
+        }
+
+        .avatar {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: var(--radius);
+            border: 2px solid var(--accent);
+            flex-shrink: 0;
+        }
+
+        .hero-text h1 {
+            font-family: "Courier New", Courier, monospace;
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            line-height: 0.95;
+            color: var(--accent);
+            font-weight: normal;
+            letter-spacing: -1px;
+        }
+
+        .hero-text h1::before {
+            content: "# ";
+        }
+
+        .hero-text p {
+            margin-top: 14px;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--subtext);
+            max-width: 500px;
+        }
+
+        /* layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 45px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+        }
+
+        section {
+            padding-top: 14px;
+            border-top: 1px solid var(--surface2);
+        }
+
+        .section-title {
+            display: inline-block;
+            margin-bottom: 14px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1rem;
+            font-weight: normal;
+            color: var(--accent);
+            letter-spacing: 0.5px;
+        }
+
+        .section-title::before {
+            content: "## ";
+            color: var(--muted);
+        }
+
+        p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--subtext);
+        }
+
+        /* links */
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            position: relative;
+            width: fit-content;
+        }
+
+        a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            width: 0%;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.2s ease;
+        }
+
+        a:hover::after {
+            width: 100%;
+        }
+
+        /* lists */
+        .stack-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stack-list span {
+            color: var(--subtext);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .tag-list span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 3px 10px;
+            border: 1px solid rgba(143, 188, 143, 0.35);
+            background: rgba(143, 188, 143, 0.05);
+            border-radius: 999px;
+            color: var(--subtext);
+            font-size: 0.82rem;
+            line-height: 1.2;
+        }
+
+        .link-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        .link-grid a {
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+
+        /* quote */
+        .quote-block {
+            color: var(--subtext);
+            font-style: italic;
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+
+        .quote-block::before {
+            content: '"';
+            color: var(--accent);
+        }
+
+        .quote-block::after {
+            content: '"';
+            color: var(--accent);
+        }
+
+        /* footer */
+        footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            margin-top: 45px;
+            padding-top: 20px;
+            border-top: 1px solid var(--surface2);
+            color: var(--subtext);
+            font-size: 0.88rem;
+        }
+
+        footer .accent {
+            color: var(--accent);
+        }
+
+        footer .dot {
+            color: var(--surface2);
+        }
+
+        /* responsive */
+        @media (max-width: 800px) {
+            body {
+                padding: 20px;
+            }
+
+            .hero {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .avatar {
+                width: 140px;
+                height: 140px;
+            }
+
+            .hero-text h1 {
+                font-size: clamp(2rem, 12vw, 3rem);
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            .column {
+                gap: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <!-- hero -->
+        <div class="hero">
+            <img src="avatar.png" alt="avatar" class="avatar">
+            <div class="hero-text">
+                <h1>Stickqq</h1>
+                <p>
+                    Обычный паренек<br>
+                    Nazar
+                </p>
+            </div>
+        </div>
+
+        <!-- two columns -->
+        <div class="layout">
+            <div class="column">
+                <!-- stek -->
+                <section>
+                    <span class="section-title">stek</span>
+                    <div class="tag-list">
+                        <span>Lua</span>
+                        <span>idk</span>
+                        <span>idk</span>
+                        <span>idk</span>
+                    </div>
+                </section>
+
+                <!-- currently -->
+                <section>
+                    <span class="section-title">currently</span>
+                    <div class="stack-list">
+                        <span>doing fucking nothing</span>
+                        <span>learning Lua</span>
+                        <span>reading <a href="https://steamcommunity.com/profiles/76561199138412423/">Steam Profile</a></span>
+                    </div>
+                </section>
+
+<!-- setup -->
+<section>
+    <span class="section-title">setup</span>
+    <div class="stack-list">
+        <span>os: Windows 10  </span>
+        <span>Media player: Winamp 2.95 , VLC </span>
+        <span>editor: Sublime text 3</span>
+        <span>VPN: <a href="https://one.one.one.one/">1.1.1.1 WARP</a></span>
+        <span>processor: intel xeon E3-1240v5</span>
+        <span>videocard: Nvidia GTX 1660 SUPER 6GB</span>
+    </div>
+</section>            </div>
+
+            <div class="column">
+                <!-- friends -->
+                <section>
+                    <span class="section-title">friends</span>
+                    <div class="link-grid">
+                        <a href="https://samposa_1337.codeberg.page/">Samposa_1337</a>
+                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1">idk</a>
+                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1">idk</a>
+                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1">idk</a>
+                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1">idk</a>
+                    </div>
+                </section>
+
+      
+
+                <!-- links -->
+                <section>
+                    <span class="section-title">links</span>
+                    <div class="link-grid">
+                        <a href="https://t.me/StickNazar">Telegram</a>
+                        <a href="https://t.me/stickqqbio">Telegram Channel</a>
+                         <a href="https://steamcommunity.com/profiles/76561199138412423/">Steam</a>
+
+                    </div>
+                </section>
+                <!-- Games -->
+
+                <section>
+                          <span class="section-title"> favorite games </span>
+                            <div class="stack-list">
+                              <span>Garry's Mod</span>
+                              <span>SCP: Secret Labaratory</span>
+                              <span>Counter-Strike 1.6</span>
+                      </section>
+                  </div>
+        </div>
+
+           
+        <!-- footer -->
+        <footer>
+            <span class="accent">#</span> Stickqq MAKE GREAT <span class="accent">#STQQ</span>
+            <span class="dot">·</span>
+            <span>2026</span>
+        </footer>
+    </main>
+
+</body>
+</html>
