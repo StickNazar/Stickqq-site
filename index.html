@@ -388,6 +388,233 @@
     }
     .fluxer-label { color: var(--dim); }
 
+    .music-btn-big {
+        font-size: 18px;
+        padding: 4px 14px;
+        border-color: var(--red);
+        color: var(--red);
+        animation: musicPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes musicPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255,43,43,.45); }
+        50% { box-shadow: 0 0 14px 3px rgba(255,43,43,.45); }
+    }
+
+    /* ---------- music player ---------- */
+    .music-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 5000;
+        display: none;
+        background: rgba(5,5,5,0.82);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .music-overlay.open { display: block; }
+    .music-window {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background:
+            radial-gradient(ellipse at 50% 0%, rgba(255,43,43,0.10), transparent 60%),
+            rgba(10,10,10,0.6);
+        animation: playerIn .45s cubic-bezier(.2,1.2,.3,1);
+        overflow-y: auto;
+    }
+    @keyframes playerIn {
+        from { clip-path: inset(0 0 100% 0); opacity: 0; }
+        to { clip-path: inset(0 0 0% 0); opacity: 1; }
+    }
+    .music-window.closing { animation: playerOut .3s ease forwards; }
+    @keyframes playerOut {
+        to { clip-path: inset(0 0 100% 0); opacity: 0; }
+    }
+    .music-stage {
+        flex: 1;
+        max-width: 760px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 30px 24px 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+    .music-nowplaying {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .m-cover-wrap {
+        width: min(240px, 60vw);
+        height: min(240px, 60vw);
+        border: 2px solid var(--red);
+        box-shadow: 0 0 40px rgba(255,43,43,0.25);
+        flex-shrink: 0;
+        animation: coverSpinGlow 6s ease-in-out infinite;
+        background: #111;
+    }
+    @keyframes coverSpinGlow {
+        0%, 100% { box-shadow: 0 0 30px rgba(255,43,43,.2); }
+        50% { box-shadow: 0 0 60px rgba(255,43,43,.5); }
+    }
+    .m-cover { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .m-meta { flex: 1; min-width: 220px; }
+    .m-label {
+        font-size: 11px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--red);
+        margin-bottom: 10px;
+    }
+    .m-title {
+        font-size: clamp(1.6rem, 5vw, 2.6rem);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        line-height: 1.1;
+        word-break: break-word;
+    }
+    .m-artist {
+        margin-top: 10px;
+        font-size: clamp(1rem, 2.6vw, 1.3rem);
+        color: var(--dim);
+    }
+    .m-album {
+        margin-top: 4px;
+        font-size: .9rem;
+        color: var(--dim);
+        font-style: italic;
+    }
+    .music-controls {
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+    }
+    .m-btn {
+        background: transparent;
+        border: 2px solid var(--ink);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 16px;
+        font-weight: bold;
+        padding: 12px 22px;
+        cursor: none;
+        transition: all .15s ease;
+    }
+    .m-btn:hover { background: var(--red); border-color: var(--red); color: #fff; }
+    .m-play { min-width: 84px; border-color: var(--red); color: var(--red); }
+    .m-play:hover { color: #fff; }
+    .music-progress {
+        height: 10px;
+        border: 1px solid rgba(255,255,255,0.25);
+        cursor: none;
+        position: relative;
+    }
+    .m-fill {
+        position: absolute;
+        inset: 0;
+        background: var(--red);
+        transform-origin: left;
+        transform: scaleX(0);
+    }
+    .music-add {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .m-add-btn {
+        background: transparent;
+        border: 2px solid var(--red);
+        color: var(--red);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        padding: 10px 16px;
+        cursor: none;
+        transition: all .15s ease;
+        text-transform: uppercase;
+    }
+    .m-add-btn:hover { background: var(--red); color: #fff; }
+    .m-url {
+        flex: 1;
+        min-width: 160px;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.25);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 13px;
+        padding: 10px 12px;
+        outline: none;
+    }
+    .m-url:focus { border-color: var(--red); }
+    .m-credit {
+        margin-top: 10px;
+        text-align: center;
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--dim);
+    }
+    .m-credit a { color: var(--red); font-weight: bold; }
+
+    .m-time {
+        font-size: 12px;
+        color: var(--dim);
+        letter-spacing: 2px;
+        text-align: right;
+    }
+    .m-tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .m-tab {
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.25);
+        color: var(--dim);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 7px 14px;
+        cursor: none;
+        transition: all .15s ease;
+    }
+    .m-tab:hover { border-color: var(--red); color: var(--ink); }
+    .m-tab.active { border-color: var(--red); color: #fff; background: rgba(255,43,43,0.15); }
+
+    .music-list {
+        max-height: 260px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .music-list::-webkit-scrollbar { width: 6px; }
+    .music-list::-webkit-scrollbar-thumb { background: var(--red); }
+    .m-track {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255,255,255,0.12);
+        font-size: 13px;
+        color: var(--dim);
+        cursor: none;
+        transition: all .12s ease;
+    }
+    .m-track:hover { border-color: var(--red); color: var(--ink); }
+    .m-track.active { border-color: var(--red); color: #fff; background: rgba(255,43,43,0.12); }
+    .m-track .t-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .m-track .t-del { color: var(--red); font-weight: bold; padding: 0 4px; }
+    .m-track .t-del:hover { color: #fff; }
+    .music-empty { font-size: 13px; color: var(--dim); padding: 10px 4px; font-style: italic; }
+
     /* games */
     .games-marquee {
         overflow: hidden;
@@ -591,6 +818,7 @@
         <span id="hud-clock">00:00:00</span>
         <span class="hud-right">
             <span class="blink">● REC</span>
+            <button class="console-btn music-btn-big" id="music-btn" title="player">&#9835;</button>
             <button class="console-btn" id="console-btn" title="console">&gt;_</button>
         </span>
     </div>
@@ -689,6 +917,39 @@
 
 </main>
 
+<!-- MUSIC PLAYER OVERLAY -->
+<div class="music-overlay" id="music-overlay">
+    <div class="music-window">
+        <div class="console-head">
+            <span>stickqq player v1.0</span>
+            <button class="console-close" id="music-close">[x]</button>
+        </div>
+        <div class="music-stage">
+            <div class="music-nowplaying">
+                <div class="m-meta">
+                    <div class="m-label">now playing</div>
+                    <div class="m-title" id="m-title">// nothing playing</div>
+                    <div class="m-artist" id="m-artist"></div>
+                    <div class="m-album" id="m-album"></div>
+                </div>
+            </div>
+            <div class="music-controls">
+                <button class="m-btn" id="m-prev">|&lt;</button>
+                <button class="m-btn m-play" id="m-play">&#9654;</button>
+                <button class="m-btn" id="m-next">&gt;|</button>
+            </div>
+            <div class="music-progress" id="m-progress"><div class="m-fill" id="m-fill"></div></div>
+            <div class="m-time" id="m-time">0:00 / 0:00</div>
+            <div class="m-tabs" id="m-tabs"></div>
+            <div class="music-list" id="music-list"></div>
+            <div class="m-credit">
+                all music hosted on <a href="https://archive.org" target="_blank" rel="noopener">archive.org</a>
+                &mdash; thanks, archive.org &#10084;
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- CONSOLE OVERLAY -->
 <div class="console-overlay" id="console-overlay">
     <div class="console-window">
@@ -701,6 +962,198 @@
 </div>
 
 <script>
+// ---------- music player ----------
+const mOverlay = document.getElementById('music-overlay');
+const mWindow = mOverlay.querySelector('.music-window');
+const mListEl = document.getElementById('music-list');
+const mTitle = document.getElementById('m-title');
+const mArtist = document.getElementById('m-artist');
+const mAlbum = document.getElementById('m-album');
+const mFill = document.getElementById('m-fill');
+const mPlayBtn = document.getElementById('m-play');
+const audio = new Audio();
+let playlist = [];   // {name, src, artist, album, cover}
+let cur = -1;
+
+document.getElementById('music-btn').addEventListener('click', () => {
+    mWindow.classList.remove('closing');
+    mOverlay.classList.add('open');
+    // user's click counts as interaction -> browsers allow playback
+    if (cur === -1 && playlist.length) playTrack(0);
+    else if (cur !== -1 && audio.paused) { audio.play().catch(() => {}); mPlayBtn.innerHTML = '&#10074;&#10074;'; }
+});
+document.getElementById('music-close').addEventListener('click', () => {
+    mWindow.classList.add('closing');
+    setTimeout(() => { mOverlay.classList.remove('open'); mWindow.classList.remove('closing'); }, 280);
+});
+mOverlay.addEventListener('click', e => { if (e.target === mOverlay) document.getElementById('music-close').click(); });
+
+function renderList() {
+    mListEl.innerHTML = '';
+    if (!playlist.length) {
+        mListEl.innerHTML = '<div class="music-empty">// playlist empty</div>';
+        return;
+    }
+    playlist.forEach((t, i) => {
+        const div = document.createElement('div');
+        div.className = 'm-track' + (i === cur ? ' active' : '');
+        const sub = [t.artist, t.album].filter(Boolean).join(' — ');
+        div.innerHTML = `<span class="t-name">${i + 1}. ${t.name}${sub ? ` <span style="opacity:.6">(${sub})</span>` : ''}</span><span class="t-del" data-i="${i}">x</span>`;
+        div.addEventListener('click', e => {
+            if (e.target.classList.contains('t-del')) {
+                e.stopPropagation();
+                playlist.splice(i, 1);
+                if (i === cur) { audio.pause(); cur = -1; showNow(null); mPlayBtn.innerHTML = '&#9654;'; }
+                else if (i < cur) cur--;
+                renderList();
+                return;
+            }
+            playTrack(i);
+        });
+        mListEl.appendChild(div);
+    });
+}
+
+function showNow(t) {
+    if (!t) {
+        mTitle.textContent = '// nothing playing';
+        mArtist.textContent = '';
+        mAlbum.textContent = '';
+        return;
+    }
+    mTitle.textContent = t.name;
+    mArtist.textContent = t.artist || '';
+    mAlbum.textContent = t.album ? '«' + t.album + '»' : '';
+}
+
+function playTrack(i) {
+    if (i < 0 || i >= playlist.length) return;
+    cur = i;
+    audio.src = playlist[i].src;
+    audio.play().catch(() => {});
+    showNow(playlist[i]);
+    mPlayBtn.innerHTML = '&#10074;&#10074;';
+    renderList();
+}
+
+mPlayBtn.addEventListener('click', () => {
+    if (cur === -1) { if (playlist.length) playTrack(0); return; }
+    if (audio.paused) { audio.play(); mPlayBtn.innerHTML = '&#10074;&#10074;'; }
+    else { audio.pause(); mPlayBtn.innerHTML = '&#9654;'; }
+});
+document.getElementById('m-prev').addEventListener('click', () => { if (playlist.length) playTrack((cur - 1 + playlist.length) % playlist.length); });
+document.getElementById('m-next').addEventListener('click', () => { if (playlist.length) playTrack((cur + 1) % playlist.length); });
+audio.addEventListener('ended', () => { if (playlist.length) playTrack((cur + 1) % playlist.length); });
+const mTime = document.getElementById('m-time');
+function fmt(s) {
+    if (!isFinite(s)) return '0:00';
+    s = Math.floor(s);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+audio.addEventListener('timeupdate', () => {
+    if (audio.duration) mFill.style.transform = `scaleX(${audio.currentTime / audio.duration})`;
+    mTime.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
+});
+audio.addEventListener('loadedmetadata', () => {
+    mTime.textContent = '0:00 / ' + fmt(audio.duration);
+});
+document.getElementById('m-progress').addEventListener('click', e => {
+    if (!audio.duration) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+});
+
+// ---------- archive.org Music scanning ----------
+const IA_QUERY = 'creator:"StickNazar"'; // по этому полю плеер ищет твои альбомы
+const AUDIO_EXT = ['mp3', 'wav', 'ogg', 'oga', 'flac', 'alac', 'm4a', 'aac', 'opus', 'weba', 'aiff', 'aif', 'wma'];
+const mTabs = document.getElementById('m-tabs');
+let albums = { 'ALL': [] };  // 'ALL' = All Music
+let currentTab = 'ALL';
+
+function isAudio(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    return AUDIO_EXT.includes(ext);
+}
+function trackName(name) {
+    return decodeURIComponent(name).replace(/\.[^.]+$/, '');
+}
+
+function renderTabs() {
+    mTabs.innerHTML = '';
+    Object.keys(albums).forEach(key => {
+        if (!albums[key].length && key !== 'ALL') return;
+        const b = document.createElement('button');
+        b.className = 'm-tab' + (key === currentTab ? ' active' : '');
+        b.textContent = (key === 'ALL' ? 'All Music' : key) + ` (${albums[key].length})`;
+        b.addEventListener('click', () => {
+            currentTab = key;
+            playlist = [...albums[key]];
+            cur = -1;
+            audio.pause();
+            showNow(playlist[0] || null);
+            mPlayBtn.innerHTML = '&#9654;';
+            mTime.textContent = '0:00 / 0:00';
+            mFill.style.transform = 'scaleX(0)';
+            renderTabs();
+            renderList();
+        });
+        mTabs.appendChild(b);
+    });
+}
+
+async function scanMusic() {
+    try {
+        const params = new URLSearchParams();
+        params.set('q', IA_QUERY);
+        params.append('fl[]', 'identifier');
+        params.append('fl[]', 'title');
+        params.set('rows', '100');
+        params.set('output', 'json');
+        const res = await fetch('https://archive.org/advancedsearch.php?' + params.toString());
+        if (!res.ok) throw new Error('search http ' + res.status);
+        const data = await res.json();
+        const docs = (data.response && data.response.docs) || [];
+        if (!docs.length) {
+            mListEl.innerHTML = '<div class="music-empty">// альбомы не найдены — проверь поле creator на archive.org</div>';
+            return;
+        }
+        albums = { 'ALL': [] };
+
+        for (const doc of docs) {
+            try {
+                const r = await fetch('https://archive.org/metadata/' + doc.identifier);
+                if (!r.ok) continue;
+                const meta = await r.json();
+                const files = (meta && meta.files) || [];
+                const tracks = files
+                    .filter(f => f.name && !f.name.startsWith('_') && !f.private && isAudio(f.name))
+                    .map(f => ({
+                        name: trackName(f.name),
+                        src: `https://archive.org/download/${doc.identifier}/${encodeURIComponent(f.name)}`,
+                        album: doc.title || doc.identifier
+                    }));
+                if (!tracks.length) continue;
+                const albumName = doc.title || doc.identifier;
+                albums[albumName] = tracks;
+                albums['ALL'].push(...tracks);
+            } catch (_) { continue; }
+        }
+
+        if (!albums['ALL'].length) {
+            mListEl.innerHTML = '<div class="music-empty">// аудио не найдено в альбомах</div>';
+            return;
+        }
+        playlist = [...albums[currentTab]];
+        renderTabs();
+        renderList();
+        if (cur === -1 && playlist.length) showNow(playlist[0]);
+    } catch (err) {
+        mListEl.innerHTML = '<div class="music-empty">// не удалось загрузить альбомы (' + err.message + ')</div>';
+    }
+}
+scanMusic();
+renderList();
+
 // ---------- console ----------
 const overlay = document.getElementById('console-overlay');
 const cbody = document.getElementById('console-body');
